@@ -26,7 +26,7 @@ arch:
     - python3 -m py_compile $(git ls-files '*.py')
     - make test
 
-script: 'curl -s https://raw.githubusercontent.com/mikkeloscar/arch-travis/master/arch-travis.sh | bash'
+script: 'curl -s https://github.com/jelly/arch-travis/blob/optimize_install/arch-travis.sh | bash'
 
 notifications:
   irc:
