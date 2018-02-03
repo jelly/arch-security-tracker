@@ -1,6 +1,7 @@
 from flask import url_for
 from flask_login import current_user
 from werkzeug.exceptions import Forbidden
+from werkzeug.exceptions import NotFound
 from werkzeug.exceptions import Unauthorized
 
 from tracker.form.admin import ERROR_EMAIL_EXISTS
@@ -40,6 +41,13 @@ def test_delete_last_admin_fails(db, client):
     resp = client.post(url_for('tracker.delete_user', username=DEFAULT_USERNAME), follow_redirects=True,
                        data=dict(confirm='confirm'))
     assert resp.status_code == Forbidden.code
+
+
+@logged_in
+def test_delete_user_not_exists(db, client):
+    resp = client.post(url_for('tracker.delete_user', username='cyberpanda'), follow_redirects=True,
+                       data=dict(confirm='confirm'))
+    assert resp.status_code == NotFound.code
 
 
 @logged_in
@@ -140,3 +148,19 @@ def test_edit_requires_admin(db, client):
     resp = client.post(url_for('tracker.edit_user', username=USERNAME), follow_redirects=True,
                        data=dict(username=USERNAME, email=EMAIL, password=PASSWORD))
     assert resp.status_code == Forbidden.code
+
+
+@create_user(username=USERNAME, password=PASSWORD)
+@create_user(username='notymself', password=PASSWORD)
+@logged_in(role=UserRole.security_team)
+def test_edit_not_own_user(db, client):
+    resp = client.post(url_for('tracker.edit_user', username='notmyself'), follow_redirects=True,
+                       data=dict(username='notmyself', email=EMAIL, password=PASSWORD))
+    assert resp.status_code == Forbidden.code
+
+
+@logged_in
+def test_edit_user_not_found(db, client):
+    resp = client.post(url_for('tracker.edit_user', username='cyberpanda'), follow_redirects=True,
+                       data=dict(confirm='confirm'))
+    assert resp.status_code == NotFound.code
