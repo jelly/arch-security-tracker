@@ -23,6 +23,7 @@ from tracker.model import CVEGroup
 from tracker.model import CVEGroupEntry
 from tracker.model import CVEGroupPackage
 from tracker.model import Package
+from tracker.model import Signoff
 from tracker.model.advisory import advisory_regex
 from tracker.model.cve import cve_id_regex
 from tracker.model.cvegroup import pkgname_regex
@@ -439,6 +440,9 @@ def show_package(pkgname):
 
 
 def render_html_advisory(advisory, package, group, raw_asa, generated):
+    signoffs = Signoff.query.filter(Advisory.id == advisory.id).all()
+    signoffs = len(signoffs)
+
     return render_template('advisory.html',
                            title='[{}] {}: {}'.format(advisory.id, package.pkgname, advisory.advisory_type),
                            advisory=advisory,
@@ -446,7 +450,8 @@ def render_html_advisory(advisory, package, group, raw_asa, generated):
                            raw_asa=raw_asa,
                            generated=generated,
                            can_handle_advisory=user_can_handle_advisory(),
-                           Publication=Publication)
+                           Publication=Publication,
+                           signoffs=signoffs)
 
 
 @tracker.route('/advisory/<regex("{}"):advisory_id>/raw'.format(advisory_regex[1:-1]), methods=['GET'])
@@ -559,3 +564,19 @@ def show_generated_advisory(advisory_id, raw=False):
     raw_asa = str(escape(raw_asa))
     raw_asa = advisory_extend_html(raw_asa, issues, package)
     return render_html_advisory(advisory=advisory, package=package, group=group, raw_asa=raw_asa, generated=True)
+
+@tracker.route('/advisory/<regex("{}"):advisory_id>/approve'.format(advisory_regex[1:-1]), methods=['GET'])
+@tracker.route('/<regex("{}"):advisory_id>/approve'.format(advisory_regex[1:-1]), methods=['GET'])
+def approve(advisory_id):
+    advisory = Advisory.query.get(advisory_id)
+    if not advisory:
+        return not_found()
+
+    if not current_user.role.is_reporter:
+        # XXX: only allow some people to review
+        return not_found()
+
+    db.get_or_create(Signoff, advisory=advisory.id, user=current_user.id, approved=True)
+    db.session.commit()
+
+    return redirect('/todo')

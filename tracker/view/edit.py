@@ -49,6 +49,8 @@ def edit_advisory(advisory_id):
     if not advisory:
         return not_found()
 
+    # Clear old signoffs.
+
     form = AdvisoryEditForm(advisory.id)
     if not form.is_submitted():
         form.workaround.data = advisory.workaround

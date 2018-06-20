@@ -16,6 +16,9 @@
 				<a href="{{  advisory.reference }}" accesskey="x">external</a>
 				{%- endif %}
 				<a href="/{{  advisory.id }}/{% if generated %}generate/{% endif %}raw" accesskey="r">raw</a>
+					{%- if advisory.publication == Publication.scheduled %}
+                                    <p>Signoff's: {{ signoffs }}</p>
+					{%- endif %}
 			</h1>
 			<table class="styled-table full size">
 				<thead>
@@ -31,4 +34,10 @@
 					</tr>
 				</tbody>
 			</table>
+                        {%- if advisory.publication == Publication.scheduled %}
+				<a href="/{{  advisory.id }}/approve" accesskey="a">approve</a>
+                        {% endif %}
+                        {%- if advisory.publication == Publication.scheduled %}
+				<a href="/{{  advisory.id }}/dissaprove" accesskey="d">dissaprove</a>
+                        {% endif %}
 {%- endblock %}
