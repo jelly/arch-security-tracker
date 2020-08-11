@@ -4,6 +4,7 @@ from flask import render_template
 from flask_login import current_user
 from flask_login import login_required
 
+from config import SSO_ENABLED
 from config import TRACKER_PASSWORD_LENGTH_MAX
 from config import TRACKER_PASSWORD_LENGTH_MIN
 from tracker import db
@@ -44,7 +45,8 @@ def list_user():
     users = sorted(users, key=lambda u: u.role)
     return render_template('admin/user.html',
                            title='User list',
-                           users=users)
+                           users=users,
+                           sso_enabled=SSO_ENABLED)
 
 
 @tracker.route('/user/create', methods=['GET', 'POST'])

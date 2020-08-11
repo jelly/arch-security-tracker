@@ -2,14 +2,18 @@ from base64 import b85encode
 from functools import wraps
 from os import urandom
 
+from flask import redirect
+from flask import url_for
 from flask_login import current_user
 from flask_login import login_required
 from scrypt import hash as shash
 from sqlalchemy.exc import IntegrityError
 
+from config import SSO_ENABLED
 from config import TRACKER_PASSWORD_LENGTH_MIN
 from tracker import db
 from tracker import login_manager
+from tracker import oauth
 from tracker.model.user import Guest
 from tracker.model.user import User
 from tracker.model.user import UserRole
@@ -37,7 +41,6 @@ def load_user(session_token):
         return Guest()
     user.is_authenticated = True
     return user
-
 
 def permission_required(permission):
     def decorator(func):
